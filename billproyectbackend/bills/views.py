@@ -43,6 +43,17 @@ class BillGenericView(viewsets.GenericViewSet,CreateModelMixin, RetrieveModelMix
         else:
             return self.retrieve(request)
 
+    def perform_create(self, serializer):
+        sellsdetails = self.request.data.get('sellsdetails', [])
+        sellsdetailssaved = []
+        for selldetail in sellsdetails:
+            selldetailserializer = SellDetailSerializer(data=selldetail)
+            selldetailserializer.is_valid(raise_exception=True)
+            selldetailinstance = selldetailserializer.save()
+            sellsdetailssaved.append(selldetailinstance)
+
+        serializer.save(selldetail=sellsdetailssaved)
+
     def post(self, request, id= None):
         return self.create(request)
     

@@ -29,4 +29,6 @@ class BillSerialiazer(serializers.ModelSerializer):
     def to_representation(self,instance):
         self.fields["selldetail"]= SellDetailSerializer(read_only=True, many=True)
         return super(BillSerialiazer,self).to_representation(instance)
+
+    
     
