@@ -1,13 +1,15 @@
 from django.shortcuts import render
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin 
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin
 from rest_framework import viewsets
 from .serializer import ProductSerialiazer, BillSerialiazer, SellDetailSerializer
 from .models import Product, Bill, SellDetail
 # Create your views here.
-class ProductGenericView(viewsets.GenericViewSet,CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin):
+
+
+class ProductGenericView(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin):
 
     serializer_class = ProductSerialiazer
-    queryset = Product.objects.all() 
+    queryset = Product.objects.all()
     lookup_field = "id"
 
     def get(self, request, id=None):
@@ -17,23 +19,24 @@ class ProductGenericView(viewsets.GenericViewSet,CreateModelMixin, RetrieveModel
         else:
             return self.retrieve(request)
 
-    def post(self, request, id= None):
+    def post(self, request, id=None):
         return self.create(request)
-    
-    def put(self, request, id= None):
+
+    def put(self, request, id=None):
         return self.update(request, id)
 
-    def delete(self, request, id= None):
+    def delete(self, request, id=None):
         return self.destroy(request, id)
-    
-    def get_queryset(self): 
+
+    def get_queryset(self):
         queryset = self.queryset.order_by('-id')
         return queryset
-    
-class BillGenericView(viewsets.GenericViewSet,CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin):
+
+
+class BillGenericView(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin):
 
     serializer_class = BillSerialiazer
-    queryset = Bill.objects.all() 
+    queryset = Bill.objects.all()
     lookup_field = "id"
 
     def get(self, request, id=None):
@@ -46,31 +49,38 @@ class BillGenericView(viewsets.GenericViewSet,CreateModelMixin, RetrieveModelMix
     def perform_create(self, serializer):
         sellsdetails = self.request.data.get('sellsdetails', [])
         sellsdetailssaved = []
+        subtotal = 0
+        total = 0
         for selldetail in sellsdetails:
             selldetailserializer = SellDetailSerializer(data=selldetail)
             selldetailserializer.is_valid(raise_exception=True)
             selldetailinstance = selldetailserializer.save()
             sellsdetailssaved.append(selldetailinstance)
+            product = Product.objects.get(pk=selldetail["product"])
+            subtotal = (getattr(product, "price") - (getattr(product, "price")
+                                                     * getattr(product, "discount")/100)) * selldetail["quantity"]
+        total = subtotal * 1.15
+        serializer.save(selldetail=sellsdetailssaved,
+                        subtotal=subtotal, total=total)
 
-        serializer.save(selldetail=sellsdetailssaved)
-
-    def post(self, request, id= None):
+    def post(self, request, id=None):
         return self.create(request)
-    
-    def put(self, request, id= None):
+
+    def put(self, request, id=None):
         return self.update(request, id)
 
-    def delete(self, request, id= None):
+    def delete(self, request, id=None):
         return self.destroy(request, id)
-    
+
     def get_queryset(self):
         queryset = self.queryset.order_by('-id')
         return queryset
 
-class SellDetailGenericView(viewsets.GenericViewSet,CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin):
+
+class SellDetailGenericView(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin):
 
     serializer_class = SellDetailSerializer
-    queryset = SellDetail.objects.all() 
+    queryset = SellDetail.objects.all()
     lookup_field = "id"
 
     def get(self, request, id=None):
@@ -80,15 +90,15 @@ class SellDetailGenericView(viewsets.GenericViewSet,CreateModelMixin, RetrieveMo
         else:
             return self.retrieve(request)
 
-    def post(self, request, id= None):
+    def post(self, request, id=None):
         return self.create(request)
-    
-    def put(self, request, id= None):
+
+    def put(self, request, id=None):
         return self.update(request, id)
 
-    def delete(self, request, id= None):
+    def delete(self, request, id=None):
         return self.destroy(request, id)
-    
-    def get_queryset(self): 
+
+    def get_queryset(self):
         queryset = self.queryset.order_by('-id')
         return queryset
