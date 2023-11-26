@@ -11,6 +11,7 @@ class ProductGenericView(viewsets.GenericViewSet, CreateModelMixin, RetrieveMode
     serializer_class = ProductSerialiazer
     queryset = Product.objects.all()
     lookup_field = "id"
+    pagination_class = None
 
     def get(self, request, id=None):
 
@@ -57,8 +58,8 @@ class BillGenericView(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMi
             selldetailinstance = selldetailserializer.save()
             sellsdetailssaved.append(selldetailinstance)
             product = Product.objects.get(pk=selldetail["product"])
-            subtotal = (getattr(product, "price") - (getattr(product, "price")
-                                                     * getattr(product, "discount")/100)) * selldetail["quantity"]
+            subtotal += getattr(product, "price") * selldetail["quantity"] - (getattr(
+                product, "price") * selldetail["quantity"] * getattr(product, "discount")/100)
         total = subtotal * 1.15
         serializer.save(selldetail=sellsdetailssaved,
                         subtotal=subtotal, total=total)

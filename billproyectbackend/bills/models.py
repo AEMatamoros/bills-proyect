@@ -44,7 +44,7 @@ class Bill(models.Model):
         SellDetail, related_name="selldetail", blank=True, verbose_name="Detalles de la venta")
     client_name = models.CharField(
         verbose_name='Nombre del Cliente', max_length=50)
-    rtn = models.IntegerField(verbose_name='RTN')
+    rtn = models.IntegerField(verbose_name='RTN', blank=True, null=True)
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name="Fecha Creacion")
     subtotal = models.FloatField(
